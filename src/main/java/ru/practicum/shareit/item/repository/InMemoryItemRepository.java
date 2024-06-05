@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.error.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.ArrayList;
@@ -28,8 +29,10 @@ public class InMemoryItemRepository implements ItemRepository {
     public Item updateItem(Item item) {
         if (items.containsKey(item.getId())) {
             items.put(item.getId(), item);
+            return item;
+        } else {
+            throw new NotFoundException("Предмет с id=" + item.getId() + " не найден!");
         }
-        return item;
     }
 
     @Override

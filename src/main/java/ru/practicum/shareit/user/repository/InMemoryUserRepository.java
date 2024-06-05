@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.error.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
@@ -25,13 +26,21 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User updateUser(User user) {
-        users.put(user.getId(), user);
-        return user;
+        if (users.containsKey(user.getId())) {
+            users.put(user.getId(), user);
+            return user;
+        } else {
+            throw new NotFoundException("Пользователь с id=" + user.getId() + " не найден!");
+        }
     }
 
     @Override
     public void deleteUser(Integer id) {
-        users.remove(id);
+        if (users.containsKey(id)) {
+            users.remove(id);
+        } else {
+            throw new NotFoundException("Пользователь с id=" + id + " не найден!");
+        }
     }
 
     @Override

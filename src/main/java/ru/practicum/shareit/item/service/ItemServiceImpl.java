@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.exception.ForbiddenException;
 import ru.practicum.shareit.error.exception.NotFoundException;
@@ -19,7 +18,6 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
-    @Autowired
     public ItemServiceImpl(UserRepository userRepository, ItemRepository itemRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;

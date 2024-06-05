@@ -51,7 +51,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleIllegalArgumentException(final DuplicateEmailException e) {
+    public ErrorResponse handleDuplicateEmailException(final DuplicateEmailException e) {
         return new ErrorResponse(
                 String.format("Неверный параметр запроса: \"%s\".", e.getMessage())
         );
