@@ -105,7 +105,7 @@ public class ItemServiceImpl implements ItemService {
                 .stream()
                 .collect(Collectors.groupingBy(b -> b.getItem().getId()));
         Map<Integer, List<Booking>> nextBookings = bookingRepository
-                .findLastByItemIdsAndItemOwnerIdAndStartIsBeforeAndStatusNotIn(userItemIds, user.getId(), nowDateTime, NEGATIVE_BOOKING_STATUSES)
+                .findNextByItemIdsAndItemOwnerIdAndStartIsAfterAndStatusNotIn(userItemIds, user.getId(), nowDateTime, NEGATIVE_BOOKING_STATUSES)
                 .stream()
                 .collect(Collectors.groupingBy(b -> b.getItem().getId()));
         Map<Integer, List<Comment>> comments = commentRepository
