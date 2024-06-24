@@ -19,13 +19,13 @@ public class ItemMapper {
                     item.getRequest() != null ? item.getRequest().getId() : null
             );
         } else {
-            throw new NullPointerException("Передан пустой объект item!");
+            return null;
         }
     }
 
     public static ItemWithBookingInfoDto toItemWithBookingInfoDto(ItemBookingInfo itemBookingInfo) {
         if (itemBookingInfo == null) {
-            throw new NullPointerException("Передан пустой объект itemBookingInfo!");
+            return null;
         }
         Item item = itemBookingInfo.getItem();
         return new ItemWithBookingInfoDto(
@@ -45,7 +45,7 @@ public class ItemMapper {
         if (itemDto != null) {
             return new Item(null, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), null, null);
         } else {
-            throw new NullPointerException("Передан пустой объект itemDto!");
+            return null;
         }
     }
 
@@ -53,7 +53,7 @@ public class ItemMapper {
         if (itemDto != null) {
             return new Item(itemId, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), null, null);
         } else {
-            throw new NullPointerException("Передан пустой объект itemDto!");
+            return null;
         }
     }
 

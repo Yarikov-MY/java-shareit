@@ -8,7 +8,7 @@ public class CommentMapper {
         if (comment != null) {
             return new CommentDto(comment.getId(), comment.getText(), comment.getAuthor().getName(), comment.getCreated());
         } else {
-            throw new NullPointerException("Передан пустой объект comment!");
+            return null;
         }
     }
 
@@ -16,7 +16,7 @@ public class CommentMapper {
         if (commentDto != null) {
             return new Comment(null, commentDto.getText(), null, null, null);
         } else {
-            throw new NullPointerException("Передан пустой объект comment!");
+            return null;
         }
     }
 }

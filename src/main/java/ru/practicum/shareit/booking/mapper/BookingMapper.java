@@ -10,7 +10,7 @@ public class BookingMapper {
         if (bookingDto != null) {
             return new Booking(bookingDto.getId(), bookingDto.getStart(), bookingDto.getEnd(), null, null, bookingDto.getStatus());
         } else {
-            throw new NullPointerException("Передан пустой объект bookingDto!");
+            return null;
         }
     }
 
