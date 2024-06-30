@@ -8,7 +8,7 @@ public class UserMapper {
         if (user != null) {
             return new UserDto(user.getId(), user.getName(), user.getEmail());
         } else {
-            throw new NullPointerException("Передан пустой объект user!");
+            return null;
         }
     }
 
@@ -16,7 +16,7 @@ public class UserMapper {
         if (userDto != null) {
             return new User(userDto.getId(), userDto.getName(), userDto.getEmail());
         } else {
-            throw new NullPointerException("Передан пустой объект userDto!");
+            return null;
         }
     }
 
@@ -24,7 +24,7 @@ public class UserMapper {
         if (userDto != null) {
             return new User(userId, userDto.getName(), userDto.getEmail());
         } else {
-            throw new NullPointerException("Передан пустой объект userDto!");
+            return null;
         }
     }
 }

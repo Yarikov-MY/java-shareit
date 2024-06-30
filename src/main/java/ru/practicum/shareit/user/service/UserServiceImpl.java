@@ -1,13 +1,12 @@
 package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.error.exception.DuplicateEmailException;
-import ru.practicum.shareit.error.exception.NotFoundException;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -20,49 +19,36 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User addUser(User user) {
-        List<User> users = userRepository.getAllUsers();
-        if (users.stream().anyMatch(it -> Objects.equals(it.getEmail(), user.getEmail()))) {
-            throw new DuplicateEmailException("Такой email уже существует!");
-        }
-        return userRepository.addUser(user);
+        return userRepository.save(user);
     }
 
     @Override
-    public User updateUser(User user) {
-        User userToUpdate = userRepository.getUserById(user.getId());
-        if (userToUpdate != null) {
-            if (user.getEmail() != null) {
-                List<User> users = userRepository.getAllUsers();
-                if (users
-                        .stream()
-                        .filter(it -> !Objects.equals(it.getId(), user.getId()))
-                        .anyMatch(it -> Objects.equals(it.getEmail(), user.getEmail()))) {
-                    throw new DuplicateEmailException("Такой email уже существует!");
-                }
-                userToUpdate.setEmail(user.getEmail());
-            }
-            if (user.getName() != null) {
-                userToUpdate.setName(user.getName());
-            }
-            userRepository.updateUser(userToUpdate);
-        } else {
-            throw new NotFoundException("Пользователь не найден!");
+    @Transactional
+    public User updateUser(User user) throws UserNotFoundException {
+        User userToUpdate = userRepository.findById(user.getId()).orElseThrow(() -> new UserNotFoundException(user.getId()));
+        if (user.getEmail() != null) {
+            userToUpdate.setEmail(user.getEmail());
         }
-        return userToUpdate;
+        if (user.getName() != null) {
+            userToUpdate.setName(user.getName());
+        }
+        return userRepository.save(userToUpdate);
     }
 
     @Override
-    public void deleteUser(Integer userId) {
-        userRepository.deleteUser(userId);
+    @Transactional
+    public void deleteUser(Integer userId) throws UserNotFoundException {
+        User user = getUserById(userId);
+        userRepository.delete(user);
     }
 
     @Override
     public List<User> getAllUsers() {
-        return userRepository.getAllUsers();
+        return userRepository.findAll();
     }
 
     @Override
-    public User getUserById(Integer id) {
-        return userRepository.getUserById(id);
+    public User getUserById(Integer id) throws UserNotFoundException {
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 }

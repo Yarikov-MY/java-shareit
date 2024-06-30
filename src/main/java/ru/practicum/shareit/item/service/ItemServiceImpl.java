@@ -1,15 +1,25 @@
 package ru.practicum.shareit.item.service;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.error.exception.ForbiddenException;
-import ru.practicum.shareit.error.exception.NotFoundException;
+import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.ItemBookingInfo;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -17,65 +27,120 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
-    public ItemServiceImpl(UserRepository userRepository, ItemRepository itemRepository) {
+    private static final List<Status> NEGATIVE_BOOKING_STATUSES =
+            List.of(Status.CANCELED, Status.REJECTED);
+
+    public ItemServiceImpl(UserRepository userRepository, ItemRepository itemRepository, BookingRepository bookingRepository, CommentRepository commentRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
+        this.bookingRepository = bookingRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
-    public Item addItem(Item item, Integer ownerId) {
-        User user = userRepository.getUserById(ownerId);
-        if (user != null) {
-            item.setOwner(user);
-            itemRepository.addItem(item);
-            return item;
-        } else {
-            throw new NotFoundException("Пользователь не найден!");
-        }
+    @Transactional
+    public Item addItem(Item item, Integer ownerId) throws UserNotFoundException {
+        User itemOwner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
+        item.setOwner(itemOwner);
+        return itemRepository.save(item);
     }
 
     @Override
-    public Item updateItem(Item item, Integer ownerId) {
-        Item updatedItem = itemRepository.getItemById(item.getId());
-        if (updatedItem != null && Objects.equals(updatedItem.getOwner().getId(), ownerId)) {
+    @Transactional
+    public Item updateItem(Item item, Integer ownerId) throws UserNotFoundException, ItemNotFoundException, ForbiddenException {
+        User itemOwner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
+        Item itemToUpdate = itemRepository.findById(item.getId()).orElseThrow(() -> new ItemNotFoundException(item.getId()));
+        if (Objects.equals(itemToUpdate.getOwner().getId(), itemOwner.getId())) {
             if (item.getName() != null) {
-                updatedItem.setName(item.getName());
+                itemToUpdate.setName(item.getName());
             }
             if (item.getDescription() != null) {
-                updatedItem.setDescription(item.getDescription());
+                itemToUpdate.setDescription(item.getDescription());
             }
             if (item.getAvailable() != null) {
-                updatedItem.setAvailable(item.getAvailable());
+                itemToUpdate.setAvailable(item.getAvailable());
             }
-            itemRepository.updateItem(updatedItem);
-            return updatedItem;
+            return itemRepository.save(itemToUpdate);
         } else {
             throw new ForbiddenException("Попытка изменить чужую вещь!");
         }
     }
 
     @Override
-    public Item getItemById(Integer itemId) {
-        return itemRepository.getItemById(itemId);
+    @Transactional
+    public ItemBookingInfo getItemByIdAndUserId(Integer itemId, Integer userId) throws UserNotFoundException, ItemNotFoundException {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new ItemNotFoundException(itemId));
+        List<Comment> comments = commentRepository.findAllByItemId(item.getId());
+        if (!Objects.equals(user.getId(), item.getOwner().getId())) {
+            return new ItemBookingInfo(item, comments);
+        }
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        Booking lastBooking = bookingRepository
+                .findLastByItemIdsAndItemOwnerIdAndStartIsBeforeAndStatusNotIn(
+                        List.of(item.getId()), user.getId(), nowDateTime, NEGATIVE_BOOKING_STATUSES)
+                .stream().findFirst().orElse(null);
+        Booking nextBooking = bookingRepository
+                .findNextByItemIdsAndItemOwnerIdAndStartIsAfterAndStatusNotIn(
+                        List.of(item.getId()), user.getId(), nowDateTime, NEGATIVE_BOOKING_STATUSES
+                ).stream().findFirst().orElse(null);
+        return new ItemBookingInfo(item, lastBooking, nextBooking, comments);
     }
 
     @Override
-    public List<Item> getUserItems(Integer userId) {
-        return itemRepository.getUserItems(userId);
+    @Transactional
+    public List<ItemBookingInfo> getOwnerItems(Integer ownerId) throws UserNotFoundException {
+        User user = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
+        List<Item> userItems = itemRepository.findByOwnerId(user.getId());
+        if (userItems.isEmpty()) {
+            return new ArrayList<>();
+        }
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        List<Integer> userItemIds = userItems.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Integer, List<Booking>> lastBookings = bookingRepository
+                .findLastByItemIdsAndItemOwnerIdAndStartIsBeforeAndStatusNotIn(userItemIds, user.getId(), nowDateTime, NEGATIVE_BOOKING_STATUSES)
+                .stream()
+                .collect(Collectors.groupingBy(b -> b.getItem().getId()));
+        Map<Integer, List<Booking>> nextBookings = bookingRepository
+                .findNextByItemIdsAndItemOwnerIdAndStartIsAfterAndStatusNotIn(userItemIds, user.getId(), nowDateTime, NEGATIVE_BOOKING_STATUSES)
+                .stream()
+                .collect(Collectors.groupingBy(b -> b.getItem().getId()));
+        Map<Integer, List<Comment>> comments = commentRepository
+                .findAllByItemIdInOrderByIdAsc(userItemIds)
+                .stream()
+                .collect(Collectors.groupingBy(b -> b.getItem().getId()));
+        List<ItemBookingInfo> itemBookingsInfo =
+                userItems.stream().map(it ->
+                        new ItemBookingInfo(
+                                it,
+                                lastBookings.getOrDefault(it.getId(), new ArrayList<>()).stream().findFirst().orElse(null),
+                                nextBookings.getOrDefault(it.getId(), new ArrayList<>()).stream().findFirst().orElse(null),
+                                comments.getOrDefault(it.getId(), new ArrayList<>())
+                        )
+                ).collect(Collectors.toList());
+        return itemBookingsInfo;
     }
 
     @Override
-    public List<Item> searchItems(String text, Integer notForUserId) {
-        String lowerCaseText = text.toLowerCase();
-        if (lowerCaseText.isBlank()) {
+    public List<Item> searchAvailableItems(String text) {
+        if (text.isBlank()) {
             return new ArrayList<>();
         } else {
-            return itemRepository.getAllItems().stream().filter(item ->
-                    item.getAvailable()
-                            && (item.getName().toLowerCase().contains(lowerCaseText)
-                            || item.getDescription().toLowerCase().contains(lowerCaseText))
-            ).collect(Collectors.toList());
+            return itemRepository.searchAvailable(text);
         }
+    }
+
+    @Override
+    @Transactional
+    public Comment addComment(Comment comment, int itemId, int userId) throws ForbiddenException {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        Booking booking = bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBefore(itemId, userId, nowDateTime).orElseThrow(() -> new IllegalArgumentException("Бронирование для такого пользователя не найдено!"));
+        comment.setAuthor(booking.getBooker());
+        comment.setItem(booking.getItem());
+        comment.setCreated(nowDateTime);
+        return commentRepository.save(comment);
     }
 }

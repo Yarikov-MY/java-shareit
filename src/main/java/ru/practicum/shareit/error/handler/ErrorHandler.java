@@ -8,10 +8,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.shareit.booking.exception.BookingNotFoundException;
+import ru.practicum.shareit.booking.exception.OwnerCantBookingItems;
+import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
+import ru.practicum.shareit.booking.exception.UserNotOwnerOrCreator;
 import ru.practicum.shareit.error.dto.ErrorResponse;
-import ru.practicum.shareit.error.exception.DuplicateEmailException;
 import ru.practicum.shareit.error.exception.ForbiddenException;
-import ru.practicum.shareit.error.exception.NotFoundException;
+import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.user.exception.DuplicateEmailException;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +62,14 @@ public class ErrorHandler {
         );
     }
 
+    @ExceptionHandler(value = UnsupportedStatusException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleUnsupportedStatusException(final UnsupportedStatusException e) {
+        return new ErrorResponse(
+                e.getMessage()
+        );
+    }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleIllegalArgumentException(final ForbiddenException e) {
@@ -65,9 +78,12 @@ public class ErrorHandler {
                 ));
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(value = {
+            BookingNotFoundException.class,
+            ItemNotFoundException.class, UserNotFoundException.class, UserNotOwnerOrCreator.class, OwnerCantBookingItems.class
+    })
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(final NotFoundException e) {
+    public ErrorResponse handleNotFoundException(final RuntimeException e) {
         return new ErrorResponse(
                 e.getMessage()
         );
