@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JsonTest
 public class BookingDtoTest {
-    private final String dtf = "yyyy-MM-dd'T'hh:mm:ss.SSSSSSSSS";
+    private final String dtf = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS";
     private final EasyRandom generator = new EasyRandom();
     @Autowired
     private JacksonTester<BookingDto> jacksonTester;
