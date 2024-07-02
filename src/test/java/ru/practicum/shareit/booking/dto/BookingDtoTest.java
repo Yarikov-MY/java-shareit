@@ -32,7 +32,7 @@ public class BookingDtoTest {
     }
 
     @Test
-    void BookingDtoJsonTest() throws IOException {
+    void bookingDtoJsonTest() throws IOException {
         LocalDateTime startTime = LocalDateTime.now();
         LocalDateTime endTime = LocalDateTime.now();
         String jsonBody = "{\n" +
