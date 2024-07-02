@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -11,6 +12,9 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemBookingInfo;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -30,14 +34,17 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
+    private final ItemRequestRepository itemRequestRepository;
+
     private static final List<Status> NEGATIVE_BOOKING_STATUSES =
             List.of(Status.CANCELED, Status.REJECTED);
 
-    public ItemServiceImpl(UserRepository userRepository, ItemRepository itemRepository, BookingRepository bookingRepository, CommentRepository commentRepository) {
+    public ItemServiceImpl(UserRepository userRepository, ItemRepository itemRepository, BookingRepository bookingRepository, CommentRepository commentRepository, ItemRequestRepository itemRequestRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Override
@@ -45,6 +52,10 @@ public class ItemServiceImpl implements ItemService {
     public Item addItem(Item item, Integer ownerId) throws UserNotFoundException {
         User itemOwner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
         item.setOwner(itemOwner);
+        if (item.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(item.getRequestId()).orElseThrow(() -> new ItemRequestNotFoundException(item.getRequestId()));
+            item.setRequest(itemRequest);
+        }
         return itemRepository.save(item);
     }
 
@@ -92,9 +103,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public List<ItemBookingInfo> getOwnerItems(Integer ownerId) throws UserNotFoundException {
+    public List<ItemBookingInfo> getOwnerItems(Integer ownerId, Integer from, Integer size) throws UserNotFoundException {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Размер должен быть больше нуля!");
+        }
         User user = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
-        List<Item> userItems = itemRepository.findByOwnerId(user.getId());
+        List<Item> userItems = itemRepository.findByOwnerId(user.getId(), PageRequest.of(from / size, size));
         if (userItems.isEmpty()) {
             return new ArrayList<>();
         }
@@ -125,11 +139,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> searchAvailableItems(String text) {
+    public List<Item> searchAvailableItems(String text, Integer from, Integer size) {
         if (text.isBlank()) {
             return new ArrayList<>();
         } else {
-            return itemRepository.searchAvailable(text);
+            if (size <= 0) {
+                throw new IllegalArgumentException("Размер должен быть больше нуля!");
+            }
+            return itemRepository.searchAvailable(text, PageRequest.of(from / size, size));
         }
     }
 

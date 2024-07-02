@@ -18,7 +18,7 @@ public class ItemWithBookingInfoDto {
     @NotBlank
     private String description;
     private Boolean available;
-    private Integer request;
+    private Integer requestId;
     private BookingDto nextBooking;
     private BookingDto lastBooking;
     private List<CommentDto> comments;

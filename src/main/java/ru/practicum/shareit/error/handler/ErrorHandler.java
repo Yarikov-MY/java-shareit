@@ -15,6 +15,7 @@ import ru.practicum.shareit.booking.exception.UserNotOwnerOrCreator;
 import ru.practicum.shareit.error.dto.ErrorResponse;
 import ru.practicum.shareit.error.exception.ForbiddenException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.exception.DuplicateEmailException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 
@@ -79,7 +80,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler(value = {
-            BookingNotFoundException.class,
+            BookingNotFoundException.class, ItemRequestNotFoundException.class,
             ItemNotFoundException.class, UserNotFoundException.class, UserNotOwnerOrCreator.class, OwnerCantBookingItems.class
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -18,7 +18,7 @@ public interface BookingService {
 
     Booking getBooking(Integer bookingId, Integer userId) throws BookingNotFoundException, UserNotOwnerOrCreator;
 
-    List<Booking> getAllBookingsOfUserByState(int bookerId, State state) throws BookingNotFoundException;
+    List<Booking> getAllBookingsOfUserByState(Integer bookerId, State state, Integer from, Integer size) throws BookingNotFoundException;
 
-    List<Booking> getAllBookingsOfUserItems(int ownerId, State state) throws BookingNotFoundException;
+    List<Booking> getAllBookingsOfUserItems(Integer ownerId, State state, Integer from, Integer size) throws BookingNotFoundException;
 }
