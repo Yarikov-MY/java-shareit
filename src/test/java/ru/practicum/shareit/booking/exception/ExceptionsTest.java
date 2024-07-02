@@ -16,7 +16,17 @@ public class ExceptionsTest {
     }
 
     @Test
+    void ownerCantBookingItems() {
+        assertDoesNotThrow(OwnerCantBookingItems::new);
+    }
+
+    @Test
     void unsupportedStatusException() {
         assertDoesNotThrow(UnsupportedStatusException::new);
+    }
+
+    @Test
+    void userNotOwnerOrCreator() {
+        assertDoesNotThrow(UserNotOwnerOrCreator::new);
     }
 }
