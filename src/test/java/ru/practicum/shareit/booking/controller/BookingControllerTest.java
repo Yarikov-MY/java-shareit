@@ -9,15 +9,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.exception.InvalidBookingStatusException;
+import ru.practicum.shareit.booking.exception.UnsupportedStatusException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.error.exception.ForbiddenException;
+import ru.practicum.shareit.user.exception.DuplicateEmailException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -104,6 +108,56 @@ class BookingControllerTest {
     }
 
     @Test
+    void shouldReturnBadRequestAfterThrowHttpMessageNotReadableExceptionWhenApproveBookingTest() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyInt(), anyBoolean()))
+                .thenThrow(new HttpMessageNotReadableException(generator.nextObject(String.class)));
+        mockMvc.perform(patch("/bookings/" + booking.getId())
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn500AfterThrowDuplicateEmailExceptionWhenApproveBookingTest() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyInt(), anyBoolean()))
+                .thenThrow(new DuplicateEmailException(generator.nextObject(String.class)));
+        mockMvc.perform(patch("/bookings/" + booking.getId())
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true"))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    void shouldReturn500AfterThrowUnsupportedStatusExceptionWhenApproveBookingTest() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyInt(), anyBoolean()))
+                .thenThrow(new UnsupportedStatusException());
+        mockMvc.perform(patch("/bookings/" + booking.getId())
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true"))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    void shouldReturn500AfterThrowForbiddenExceptionWhenApproveBookingTest() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyInt(), anyBoolean()))
+                .thenThrow(new ForbiddenException(""));
+        mockMvc.perform(patch("/bookings/" + booking.getId())
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturn500AfterThrowThrowableWhenApproveBookingTest() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyInt(), anyBoolean()))
+                .thenThrow(new RuntimeException(""));
+        mockMvc.perform(patch("/bookings/" + booking.getId())
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true"))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
     void getBookingTest() throws Exception {
         when(bookingService.getBooking(anyInt(), anyInt())).thenReturn(booking);
         MvcResult result = mockMvc.perform(get("/bookings/" + booking.getId())
@@ -123,6 +177,7 @@ class BookingControllerTest {
                         .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isNotFound());
     }
+
 
     @Test
     void getAllBookingsOfUserByStateTest() throws Exception {
