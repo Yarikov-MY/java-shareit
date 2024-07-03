@@ -3,6 +3,7 @@ package ru.practicum.shareit.request.service;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
@@ -24,6 +25,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
+    @Transactional
     public ItemRequest addRequest(ItemRequest itemRequest, Integer requestorId) throws UserNotFoundException {
         User requestor = userRepository.findById(requestorId).orElseThrow(() -> new UserNotFoundException(requestorId));
         itemRequest.setRequestor(requestor);

@@ -10,7 +10,9 @@ import java.util.stream.Collectors;
 
 public class ItemRequestMapper {
     public static ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
-        if (itemRequest != null) {
+        if (itemRequest == null) {
+            return null;
+        } else {
             ItemRequestDto itemRequestDto = new ItemRequestDto(
                     itemRequest.getId(),
                     itemRequest.getDescription(),
@@ -31,22 +33,14 @@ public class ItemRequestMapper {
             }
             itemRequestDto.setItems(items);
             return itemRequestDto;
-        } else {
-            return null;
         }
     }
 
     public static ItemRequest toItemRequest(ItemRequestDto itemRequestDto) {
-        if (itemRequestDto != null) {
-            return new ItemRequest(
-                    itemRequestDto.getId(),
-                    itemRequestDto.getDescription(),
-                    null,
-                    itemRequestDto.getCreated(),
-                    null
-            );
-        } else {
+        if (itemRequestDto == null) {
             return null;
+        } else {
+            return new ItemRequest(itemRequestDto.getId(), itemRequestDto.getDescription(), null, itemRequestDto.getCreated(), null);
         }
     }
 }

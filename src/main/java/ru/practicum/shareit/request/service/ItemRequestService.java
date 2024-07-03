@@ -9,9 +9,7 @@ import java.util.List;
 public interface ItemRequestService {
     ItemRequest addRequest(ItemRequest itemRequest, Integer requestorId) throws UserNotFoundException;
 
-    ItemRequest getRequest(
-            Integer requestId, Integer requestorId
-    ) throws UserNotFoundException, ItemRequestNotFoundException;
+    ItemRequest getRequest(Integer requestId, Integer requestorId) throws UserNotFoundException, ItemRequestNotFoundException;
 
     List<ItemRequest> getAllRequests(Integer requestorId, Integer from, Integer size);
 
