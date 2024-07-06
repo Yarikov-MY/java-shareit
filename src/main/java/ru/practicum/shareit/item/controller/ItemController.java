@@ -50,13 +50,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemWithBookingInfoDto> getUserItems(@RequestHeader(value = "X-Sharer-User-Id") Integer userId) {
-        return itemService.getOwnerItems(userId).stream().map(ItemMapper::toItemWithBookingInfoDto).collect(Collectors.toList());
+    public List<ItemWithBookingInfoDto> getUserItems(
+            @RequestHeader(value = "X-Sharer-User-Id") Integer userId,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return itemService.getOwnerItems(userId, from, size).stream().map(ItemMapper::toItemWithBookingInfoDto).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam(required = false, defaultValue = "") String text) {
-        return itemService.searchAvailableItems(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+    public List<ItemDto> searchItems(
+            @RequestParam(required = false, defaultValue = "") String text,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return itemService.searchAvailableItems(text, from, size).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     @PostMapping("/{itemId}/comment")

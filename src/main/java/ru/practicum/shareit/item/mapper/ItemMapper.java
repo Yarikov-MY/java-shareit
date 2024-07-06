@@ -16,7 +16,7 @@ public class ItemMapper {
                     item.getName(),
                     item.getDescription(),
                     item.getAvailable(),
-                    item.getRequest() != null ? item.getRequest().getId() : null
+                    item.getRequestId()
             );
         } else {
             return null;
@@ -42,18 +42,18 @@ public class ItemMapper {
     }
 
     public static Item toItem(ItemDto itemDto) {
-        if (itemDto != null) {
-            return new Item(null, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), null, null);
-        } else {
+        if (itemDto == null) {
             return null;
+        } else {
+            return new Item(null, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), null, itemDto.getRequestId(), null);
         }
     }
 
     public static Item toItem(ItemDto itemDto, Integer itemId) {
-        if (itemDto != null) {
-            return new Item(itemId, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), null, null);
-        } else {
+        if (itemDto == null) {
             return null;
+        } else {
+            return new Item(itemId, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), null, itemDto.getRequestId(), null);
         }
     }
 

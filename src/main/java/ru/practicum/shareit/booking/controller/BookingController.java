@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.controller;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,10 +18,12 @@ import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@Validated
 @RequestMapping(path = "/bookings")
 public class BookingController {
     private final BookingService bookingService;
@@ -52,7 +55,9 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllBookingsOfUserByState(
             @RequestHeader("X-Sharer-User-Id") Integer ownerId,
-            @RequestParam(value = "state", required = false, defaultValue = "ALL") String state
+            @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         State bookingState;
         try {
@@ -60,16 +65,16 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             throw new UnsupportedStatusException();
         }
-        List<Booking> bookings = bookingService.getAllBookingsOfUserByState(ownerId, bookingState);
+        List<Booking> bookings = bookingService.getAllBookingsOfUserByState(ownerId, bookingState, from, size);
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsOfUserItems(
-            @RequestHeader("X-Sharer-User-Id")
-            Integer ownerId,
-            @RequestParam(value = "state", required = false, defaultValue = "ALL")
-            String state
+            @RequestHeader("X-Sharer-User-Id") Integer ownerId,
+            @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         State bookingState;
         try {
@@ -77,7 +82,7 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             throw new UnsupportedStatusException();
         }
-        List<Booking> bookings = bookingService.getAllBookingsOfUserItems(ownerId, bookingState);
+        List<Booking> bookings = bookingService.getAllBookingsOfUserItems(ownerId, bookingState, from, size);
         return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
 }

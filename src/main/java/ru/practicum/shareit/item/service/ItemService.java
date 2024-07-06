@@ -16,9 +16,9 @@ public interface ItemService {
 
     ItemBookingInfo getItemByIdAndUserId(Integer itemId, Integer userId) throws UserNotFoundException, ItemNotFoundException;
 
-    List<ItemBookingInfo> getOwnerItems(Integer ownerId) throws UserNotFoundException;
+    List<ItemBookingInfo> getOwnerItems(Integer ownerId, Integer from, Integer size) throws UserNotFoundException;
 
-    List<Item> searchAvailableItems(String text);
+    List<Item> searchAvailableItems(String text, Integer from, Integer size);
 
     Comment addComment(Comment comment, int itemId, int userId) throws ForbiddenException;
 
