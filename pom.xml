@@ -8,11 +8,14 @@
 		<version>2.7.18</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-
+    <modules>
+        <module>gateway</module>
+        <module>server</module>
+    </modules>
 	<groupId>ru.practicum</groupId>
 	<artifactId>shareit</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-
+    <packaging>pom</packaging>
 	<name>ShareIt</name>
 
 	<properties>
@@ -65,11 +68,10 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<resources>
 			<resource>
-				<directory>src/main/resources</directory>
+                <directory>server/src/main/resources</directory>
 				<filtering>true</filtering>
 			</resource>
 		</resources>
