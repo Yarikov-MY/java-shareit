@@ -21,20 +21,20 @@ public class ItemRequestClient extends BaseClient {
         super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + REQUESTS_PREFIX)).requestFactory(HttpComponentsClientHttpRequestFactory::new).build());
     }
 
-    public ResponseEntity<Object> getAllRequestsByRequestorId(Integer userId) {
+    public ResponseEntity<Object> getAllRequestsByRequestorId(int userId) {
         return get("", userId);
     }
 
-    public ResponseEntity<Object> addRequest(Integer userId, ItemRequestDto itemRequestDto) {
+    public ResponseEntity<Object> addRequest(int userId, ItemRequestDto itemRequestDto) {
         return post("", userId, itemRequestDto);
     }
 
-    public ResponseEntity<Object> getRequest(Integer userId, Integer requestId) {
+    public ResponseEntity<Object> getRequest(int userId, int requestId) {
         return get("/" + requestId, userId);
     }
 
-    public ResponseEntity<Object> getAllRequests(Long userId, Integer from, Integer size) {
+    public ResponseEntity<Object> getAllRequests(int userId, int from, int size) {
         Map<String, Object> parameters = Map.of("from", from, "size", size);
-        return get("/all?from={from}&size={size}", userId, parameters);
+        return get("/all?from={from}&size={size}", (long) userId, parameters);
     }
 }

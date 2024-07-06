@@ -50,7 +50,7 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> getAllRequests(
-            @RequestHeader("X-Sharer-User-Id") @Positive Long requestorId,
+            @RequestHeader("X-Sharer-User-Id") @Positive Integer requestorId,
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
         return itemRequestClient.getAllRequests(requestorId, from, size);
