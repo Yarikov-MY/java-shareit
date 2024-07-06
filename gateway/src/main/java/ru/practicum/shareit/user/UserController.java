@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<Object> updateUser(@Valid @RequestBody UserDto userDto, @PathVariable @Positive Integer userId) {
+    public ResponseEntity<Object> updateUser(@RequestBody UserDto userDto, @PathVariable @Positive Integer userId) {
         return userClient.updateUser(userId, userDto);
     }
 
